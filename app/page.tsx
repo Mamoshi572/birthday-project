@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import Confetti from 'react-confetti';
+import dynamic from 'next/dynamic';
+
+// Dynamically import confetti
+const Confetti = dynamic(() => import('react-confetti'), { ssr: false });
+
+interface Wish {
+  id: number;
+  name: string;
+  message: string;
+  timestamp: Date;
+}
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ 
@@ -15,25 +25,39 @@ export default function Home() {
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [isBirthday, setIsBirthday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [quote, setQuote] = useState('');
+  const [wishes, setWishes] = useState<Wish[]>([
+    { id: 1, name: "You", message: "Happy Birthday to me! 🎉", timestamp: new Date() },
+    { id: 2, name: "Well-wisher", message: "Wishing you an amazing year ahead!", timestamp: new Date() },
+  ]);
+  const [newWish, setNewWish] = useState({ name: '', message: '' });
+  const [showMpesa, setShowMpesa] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'gifts'>('countdown');
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  
   const audioRef = useRef<HTMLAudioElement>(null);
-
-  // Birthday quotes
-  const birthdayQuotes = [
-    "The more you praise and celebrate your life, the more there is in life to celebrate.",
-    "Today you are you! That is truer than true! There is no one alive who is you-er than you!",
-    "Count your age by friends, not years. Count your life by smiles, not tears.",
-    "The secret of staying young is to live honestly, eat slowly, and lie about your age.",
-    "Birthdays are nature's way of telling us to eat more cake.",
-    "Growing old is mandatory; growing up is optional.",
-    "You're not getting older, you're getting better!",
-    "Today is the oldest you've ever been, and the youngest you'll ever be again."
-  ];
+  
+  // Your M-Pesa number (Update this with your actual number)
+  const mpesaNumber = "2547XXXXXXXX"; // Replace with your number
 
   useEffect(() => {
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
+    
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
     const calculateMetrics = () => {
       const now = new Date();
-      const birthDate = new Date(2002, 1, 4); // Feb 4, 2002
+      const birthDate = new Date(2002, 1, 4);
       
       // Calculate age
       const currentAge = now.getFullYear() - birthDate.getFullYear();
@@ -49,7 +73,7 @@ export default function Home() {
       setTotalSeconds(secondsLived);
       
       // Check if today is birthday
-      const isTodayBirthday = now.getMonth() === 1 && now.getDate() === 4; // Feb 4
+      const isTodayBirthday = now.getMonth() === 1 && now.getDate() === 4;
       setIsBirthday(isTodayBirthday);
       
       // Calculate time to next birthday
@@ -70,10 +94,10 @@ export default function Home() {
     calculateMetrics();
     const interval = setInterval(calculateMetrics, 1000);
     
-    // Set random quote
-    setQuote(birthdayQuotes[Math.floor(Math.random() * birthdayQuotes.length)]);
-    
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const playBirthdaySound = () => {
@@ -85,15 +109,57 @@ export default function Home() {
   };
 
   const shareOnTwitter = () => {
-    const text = `🎂 Celebrating my birthday! I'm ${age} years young today! Check out my interactive birthday countdown:`;
+    const text = `🎂 Celebrating my ${age}th birthday! Send me wishes and check out my interactive birthday page:`;
     const url = window.location.href;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleSubmitWish = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newWish.name.trim() && newWish.message.trim()) {
+      const wish: Wish = {
+        id: wishes.length + 1,
+        name: newWish.name,
+        message: newWish.message,
+        timestamp: new Date()
+      };
+      setWishes([wish, ...wishes]);
+      setNewWish({ name: '', message: '' });
+      
+      // Show confetti for new wishes
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Gift suggestions
+  const giftIdeas = [
+    { id: 1, name: "Coffee Treat ☕", amount: "$5", description: "Buy me a coffee!" },
+    { id: 2, name: "Lunch 🍕", amount: "$15", description: "Treat me to lunch" },
+    { id: 3, name: "Book 📚", amount: "$25", description: "Help grow my library" },
+    { id: 4, name: "Surprise 🎁", amount: "Any", description: "Your choice!" },
+  ];
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%)',
       color: 'white',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative',
@@ -111,18 +177,18 @@ export default function Home() {
       }} />
       
       {/* Confetti */}
-      {showConfetti && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999 }}>
-          <Confetti
-            width={window.innerWidth}
-            height={window.innerHeight}
-            recycle={false}
-            numberOfPieces={200}
-          />
-        </div>
+      {showConfetti && windowSize.width > 0 && windowSize.height > 0 && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.1}
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+        />
       )}
       
-      {/* Audio element for birthday sound */}
+      {/* Audio */}
       <audio ref={audioRef} src="https://assets.mixkit.co/sfx/preview/mixkit-happy-birthday-horn-576.mp3" />
       
       <div style={{
@@ -136,7 +202,7 @@ export default function Home() {
         <header style={{
           textAlign: 'center',
           padding: '40px 20px',
-          marginBottom: '40px'
+          marginBottom: '20px'
         }}>
           <div style={{
             fontSize: isBirthday ? '4.5rem' : '3.5rem',
@@ -146,19 +212,20 @@ export default function Home() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             animation: 'gradient 3s ease infinite',
-            marginBottom: '20px'
+            marginBottom: '10px'
           }}>
-            {isBirthday ? '🎉 HAPPY BIRTHDAY BENSON! 🎉' : "Benson's Birthday Celebration"}
+            {isBirthday ? '🎉 HAPPY BIRTHDAY BENSON! 🎉' : "Benson's Birthday"}
           </div>
           
           <div style={{
-            fontSize: '1.3rem',
+            fontSize: '1.2rem',
             opacity: 0.9,
-            marginBottom: '10px',
+            marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px'
+            gap: '10px',
+            flexWrap: 'wrap'
           }}>
             <span>🎂 Born February 4, 2002</span>
             <span>•</span>
@@ -167,206 +234,11 @@ export default function Home() {
             <span>🎈 {age} Years Young</span>
           </div>
           
-          {isBirthday && (
-            <button
-              onClick={playBirthdaySound}
-              style={{
-                marginTop: '20px',
-                padding: '15px 30px',
-                background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
-                border: 'none',
-                borderRadius: '50px',
-                color: 'white',
-                fontSize: '1.1rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                margin: '20px auto'
-              }}
-            >
-              🎵 Play Birthday Music & Confetti!
-            </button>
-          )}
-        </header>
-
-        {/* Main Content */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '30px',
-          marginBottom: '50px'
-        }}>
-          {/* Countdown Timer */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '24px',
-            padding: '30px',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              ⏱️ {isBirthday ? 'Enjoy Your Special Day!' : 'Countdown to Next Birthday'}
-            </h2>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '15px',
-              marginBottom: '25px'
-            }}>
-              {Object.entries(timeLeft).map(([unit, value]) => (
-                <div key={unit} style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  borderRadius: '16px',
-                  padding: '25px 15px',
-                  textAlign: 'center',
-                  transition: 'transform 0.3s ease'
-                }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '5px' }}>
-                    {value.toString().padStart(2, '0')}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {unit}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '12px',
-              padding: '15px',
-              fontSize: '0.9rem',
-              opacity: 0.8
-            }}>
-              {isBirthday 
-                ? '🎉 Today is the day! Celebrate and enjoy every moment!'
-                : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
-              }
-            </div>
-          </div>
-
-          {/* Life Stats */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '24px',
-            padding: '30px',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              📊 Life Statistics
-            </h2>
-            
-            <div style={{ display: 'grid', gap: '15px' }}>
-              {[
-                { label: 'Years Alive', value: age, emoji: '🎂', color: '#ff6b6b' },
-                { label: 'Days Alive', value: Math.floor(totalSeconds / 86400).toLocaleString(), emoji: '📅', color: '#4d96ff' },
-                { label: 'Hours Alive', value: Math.floor(totalSeconds / 3600).toLocaleString(), emoji: '⏰', color: '#6bcf7f' },
-                { label: 'Minutes Alive', value: Math.floor(totalSeconds / 60).toLocaleString(), emoji: '⏱️', color: '#ffd93d' },
-                { label: 'Seconds Alive', value: totalSeconds.toLocaleString(), emoji: '⚡', color: '#9d4edd' },
-              ].map((stat, index) => (
-                <div key={stat.label} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '15px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '12px',
-                  transition: 'transform 0.3s ease'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '10px',
-                      background: stat.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.2rem'
-                    }}>
-                      {stat.emoji}
-                    </div>
-                    <span style={{ fontSize: '1rem' }}>{stat.label}</span>
-                  </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{stat.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Quote Section */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '24px',
-          padding: '30px',
-          marginBottom: '40px',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.2rem', fontStyle: 'italic', marginBottom: '15px', opacity: 0.9 }}>
-            "{quote}"
-          </div>
-          <div style={{ fontSize: '0.9rem', opacity: 0.6 }}>
-            - Birthday Wisdom
-          </div>
-        </div>
-
-        {/* Developer Section */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '24px',
-          padding: '30px',
-          marginBottom: '40px',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            👨‍💻 About This Project
-          </h2>
-          
-          <div style={{ marginBottom: '25px', lineHeight: '1.6' }}>
-            <p>Hi, I'm Benson (Ashen)! I built this interactive birthday celebration as a developer project for my portfolio.</p>
-            <p>This app tracks time in various units, celebrates milestones, and showcases what I can build as a developer.</p>
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '15px',
-            marginBottom: '25px'
-          }}>
-            {['JavaScript', 'React', 'Next.js', 'CSS3', 'Vercel', 'Responsive Design'].map((tech) => (
-              <span key={tech} style={{
-                padding: '8px 16px',
-                background: 'rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px',
-                fontSize: '0.9rem'
-              }}>
-                {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '20px',
-          justifyContent: 'center',
-          marginBottom: '40px'
-        }}>
           <button
-            onClick={shareOnTwitter}
+            onClick={playBirthdaySound}
             style={{
-              padding: '15px 30px',
-              background: 'linear-gradient(45deg, #1da1f2, #0d8bdc)',
+              padding: '12px 24px',
+              background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
               border: 'none',
               borderRadius: '50px',
               color: 'white',
@@ -375,8 +247,424 @@ export default function Home() {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              minWidth: '200px'
+              gap: '8px',
+              margin: '0 auto',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            🎉 {isBirthday ? 'Celebrate My Birthday!' : 'Preview Celebration'}
+          </button>
+        </header>
+
+        {/* Navigation Tabs */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '10px',
+          marginBottom: '30px',
+          flexWrap: 'wrap'
+        }}>
+          {[
+            { id: 'countdown', label: '⏱️ Countdown', icon: '⏱️' },
+            { id: 'wishes', label: '💬 Birthday Wishes', icon: '💬' },
+            { id: 'gifts', label: '🎁 Send a Gift', icon: '🎁' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                padding: '12px 24px',
+                background: activeTab === tab.id 
+                  ? 'rgba(255, 255, 255, 0.2)' 
+                  : 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '50px',
+                color: 'white',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Main Content */}
+        {activeTab === 'countdown' && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '30px',
+            marginBottom: '50px'
+          }}>
+            {/* Countdown Timer */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '24px',
+              padding: '30px',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                ⏱️ {isBirthday ? 'Enjoy Your Special Day!' : 'Countdown to Next Birthday'}
+              </h2>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '15px',
+                marginBottom: '25px'
+              }}>
+                {Object.entries(timeLeft).map(([unit, value]) => (
+                  <div key={unit} style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '16px',
+                    padding: '25px 15px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '5px' }}>
+                      {value.toString().padStart(2, '0')}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.8, textTransform: 'uppercase' }}>
+                      {unit}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Life Stats */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '24px',
+              padding: '30px',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                📊 Life Statistics
+              </h2>
+              
+              <div style={{ display: 'grid', gap: '15px' }}>
+                {[
+                  { label: 'Years Alive', value: age, emoji: '🎂', color: '#ff6b6b' },
+                  { label: 'Days Alive', value: Math.floor(totalSeconds / 86400).toLocaleString(), emoji: '📅', color: '#4d96ff' },
+                  { label: 'Hours Alive', value: Math.floor(totalSeconds / 3600).toLocaleString(), emoji: '⏰', color: '#6bcf7f' },
+                  { label: 'Minutes Alive', value: Math.floor(totalSeconds / 60).toLocaleString(), emoji: '⏱️', color: '#ffd93d' },
+                  { label: 'Seconds Alive', value: totalSeconds.toLocaleString(), emoji: '⚡', color: '#9d4edd' },
+                ].map((stat) => (
+                  <div key={stat.label} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: stat.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem'
+                      }}>
+                        {stat.emoji}
+                      </div>
+                      <span>{stat.label}</span>
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{stat.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'wishes' && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            padding: '30px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            marginBottom: '30px'
+          }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              💬 Send Birthday Wishes
+            </h2>
+            
+            {/* Wish Form */}
+            <form onSubmit={handleSubmitWish} style={{ marginBottom: '30px' }}>
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={newWish.name}
+                  onChange={(e) => setNewWish({...newWish, name: e.target.value})}
+                  style={{
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontSize: '1rem'
+                  }}
+                  required
+                />
+                <textarea
+                  placeholder="Your birthday message..."
+                  value={newWish.message}
+                  onChange={(e) => setNewWish({...newWish, message: e.target.value})}
+                  rows={4}
+                  style={{
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+                <button
+                  type="submit"
+                  style={{
+                    padding: '15px 30px',
+                    background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
+                    border: 'none',
+                    borderRadius: '50px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px'
+                  }}
+                >
+                  ✨ Post Birthday Wish
+                </button>
+              </div>
+            </form>
+
+            {/* Wishes List */}
+            <div style={{ marginTop: '30px' }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', opacity: 0.9 }}>
+                🎈 Recent Wishes ({wishes.length})
+              </h3>
+              <div style={{ display: 'grid', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
+                {wishes.map((wish) => (
+                  <div key={wish.id} style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    borderLeft: '4px solid #8b5cf6'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{wish.name}</div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{formatTimeAgo(wish.timestamp)}</div>
+                    </div>
+                    <p style={{ margin: 0, opacity: 0.9, lineHeight: '1.5' }}>{wish.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'gifts' && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            padding: '30px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            marginBottom: '30px'
+          }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              🎁 Gift Suggestions
+            </h2>
+            
+            <p style={{ marginBottom: '25px', opacity: 0.9, lineHeight: '1.6' }}>
+              If you'd like to make my birthday extra special, here are some gift ideas. 
+              Every little bit means a lot! 💝
+            </p>
+
+            {/* Gift Ideas */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '20px',
+              marginBottom: '30px'
+            }}>
+              {giftIdeas.map((gift) => (
+                <div key={gift.id} style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  padding: '25px',
+                  textAlign: 'center',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  transition: 'transform 0.3s ease'
+                }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{gift.name.split(' ')[1]}</div>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>{gift.name}</h3>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffd93d', marginBottom: '10px' }}>
+                    {gift.amount}
+                  </div>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '20px' }}>{gift.description}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* M-Pesa Section */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              padding: '25px',
+              marginBottom: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  📱 Send via M-Pesa (Kenya)
+                </h3>
+                <button
+                  onClick={() => setShowMpesa(!showMpesa)}
+                  style={{
+                    padding: '8px 16px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    borderRadius: '20px',
+                    color: 'white',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showMpesa ? 'Hide' : 'Show'} Number
+                </button>
+              </div>
+              
+              {showMpesa && (
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginTop: '15px'
+                }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    marginBottom: '15px'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '5px' }}>M-Pesa Number</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                        {mpesaNumber}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(mpesaNumber)}
+                      style={{
+                        padding: '10px 20px',
+                        background: copySuccess ? '#10b981' : 'linear-gradient(45deg, #059669, #10b981)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        minWidth: '100px'
+                      }}
+                    >
+                      {copySuccess ? '✓ Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px',
+                    padding: '12px',
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 215, 0, 0.3)'
+                  }}>
+                    <div style={{ fontSize: '1.2rem' }}>💡</div>
+                    <div style={{ fontSize: '0.9rem' }}>
+                      <strong>Tip:</strong> Open M-Pesa, select "Send Money", enter this number, and any amount you wish!
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Other Options */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              padding: '25px',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                💝 Other Ways to Celebrate
+              </h3>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
+                  <span>📧</span>
+                  <span>Send an email with your favorite memory of us</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
+                  <span>🌟</span>
+                  <span>Share this page with others to spread the celebration</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
+                  <span>🎯</span>
+                  <span>Challenge me to a coding problem or game</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '15px',
+          justifyContent: 'center',
+          marginBottom: '40px'
+        }}>
+          <button
+            onClick={shareOnTwitter}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(45deg, #1da1f2, #0d8bdc)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              minWidth: '180px'
             }}
           >
             🐦 Share on Twitter
@@ -387,19 +675,19 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              padding: '15px 30px',
+              padding: '12px 24px',
               background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
               border: 'none',
               borderRadius: '50px',
               color: 'white',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
               textDecoration: 'none',
-              minWidth: '200px'
+              minWidth: '180px'
             }}
           >
             🚀 View My Portfolio
@@ -408,18 +696,18 @@ export default function Home() {
           <button
             onClick={() => window.print()}
             style={{
-              padding: '15px 30px',
+              padding: '12px 24px',
               background: 'linear-gradient(45deg, #10b981, #059669)',
               border: 'none',
               borderRadius: '50px',
               color: 'white',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              minWidth: '200px'
+              gap: '8px',
+              minWidth: '180px'
             }}
           >
             🖨️ Save as PDF
@@ -429,44 +717,16 @@ export default function Home() {
         {/* Footer */}
         <footer style={{
           textAlign: 'center',
-          padding: '40px 20px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          padding: '30px 20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          fontSize: '0.9rem',
+          opacity: 0.7
         }}>
-          <div style={{ fontSize: '1.1rem', marginBottom: '10px', opacity: 0.9 }}>
-            Made with ❤️ to celebrate {age} amazing years!
+          <div style={{ marginBottom: '10px' }}>
+            Made with ❤️ by Benson to celebrate {age} amazing years!
           </div>
-          <div style={{ fontSize: '0.9rem', opacity: 0.6, marginBottom: '20px' }}>
-            Deployed on Vercel • Perfect for portfolio showcase • Live updating every second
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '20px',
-            flexWrap: 'wrap'
-          }}>
-            <a 
-              href="https://vercel.com/new" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{ opacity: 0.8, textDecoration: 'none', color: 'white' }}
-            >
-              Deploy your own →
-            </a>
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{ opacity: 0.8, textDecoration: 'none', color: 'white' }}
-            >
-              View on GitHub →
-            </a>
-            <a 
-              href="mailto:hello@example.com" 
-              style={{ opacity: 0.8, textDecoration: 'none', color: 'white' }}
-            >
-              Contact Me →
-            </a>
+          <div>
+            Update the M-Pesa number in the code to your actual number. Wishes are stored locally in browser.
           </div>
         </footer>
       </div>
@@ -478,15 +738,38 @@ export default function Home() {
           100% { background-position: 0% 50%; }
         }
         
+        /* Custom scrollbar for wishes */
+        div::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        div::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }
+        
+        div::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 4px;
+        }
+        
         @media (max-width: 768px) {
           div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
             gridTemplateColumns: repeat(2, 1fr) !important;
+          }
+          
+          div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"] {
+            gridTemplateColumns: 1fr !important;
           }
         }
         
         @media (max-width: 480px) {
           div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
             gridTemplateColumns: 1fr !important;
+          }
+          
+          header h1 {
+            font-size: 2.5rem !important;
           }
         }
       `}</style>
