@@ -32,7 +32,7 @@ export default function Home() {
   const [newWish, setNewWish] = useState({ name: '', message: '' });
   const [showMpesa, setShowMpesa] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'gifts'>('countdown');
+  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji'>('countdown');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -484,7 +484,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === 'gifts' && (
+        {activeTab === 'za kabej /uji' && (
           <div style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(10px)',
@@ -727,7 +727,6 @@ export default function Home() {
           </div>
           <div>
             Leo ndio ile siku! 🎉🥳
-
           </div>
         </footer>
       </div>
