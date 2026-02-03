@@ -39,9 +39,9 @@ export default function Home() {
   const [isBirthday, setIsBirthday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [wishes, setWishes] = useState<Wish[]>([
-    { id: 1, name: "Benson", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
-    { id: 2, name: "Moshi", message: "Happy birthday mzee! May this year bring you endless code and coffee ☕", timestamp: new Date() },
-    { id: 3, name: "Ashen", message: "Another year wiser! Keep building amazing things 🚀", timestamp: new Date() },
+    { id: 1, name: "Ashen", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
+    { id: 2, name: "cleo", message: "Happy birthday mzee! May this year bring you endless code and coffee ☕", timestamp: new Date() },
+    { id: 3, name: "keysha", message: "Another year wiser! Keep building amazing things ", timestamp: new Date() },
   ]);
   const [newWish, setNewWish] = useState({ name: '', message: '' });
   const [showMpesa, setShowMpesa] = useState(false);
@@ -198,7 +198,7 @@ export default function Home() {
   };
 
   const shareBirthday = (platform: string, url: string) => {
-    const text = `🎂 Celebrating Benson's ${age}th birthday! Join the celebration and send your wishes:`;
+    const text = `🎂 Celebrating BEN (Ashen) birthday! Join the celebration and send your wishes:`;
     const currentUrl = window.location.href;
     
     if (platform === 'Copy Link') {
@@ -211,7 +211,7 @@ export default function Home() {
   };
 
   const sendViaWhatsApp = () => {
-    const message = `🎉 Happy Birthday Benson! Wishing you an amazing ${age}th birthday! 🎂`;
+    const message = `🎉 Happy Birthday Benson! Wishing you an amazing birthday! 🎂`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -332,7 +332,7 @@ export default function Home() {
             marginBottom: '10px',
             textShadow: '0 2px 20px rgba(0,0,0,0.2)'
           }}>
-            {isBirthday ? '🎉 HAPPY BIRTHDAY BENSON! 🎉' : "Benson's Birthday"}
+            {isBirthday ? '🎉 HAPPY BIRTHDAY ASHEN 🎉' : "Benson's Birthday"}
           </div>
           
           <div style={{
@@ -354,7 +354,7 @@ export default function Home() {
             <span style={{ opacity: 0.5 }}>•</span>
             <span>👨‍💻 Full Stack Developer</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>🎈 {age} Years Young</span>
+            <span>🎈 Kijana mdogo</span>
           </div>
           
           {/* Quick Actions */}
@@ -998,7 +998,7 @@ export default function Home() {
               textAlign: 'center'
             }}>
               <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                🎂 Interactive Birthday Cake
+                🎂 Interactive Birthday game
               </h3>
               <div style={{ 
                 display: 'flex', 
