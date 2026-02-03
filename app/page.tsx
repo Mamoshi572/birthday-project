@@ -13,6 +13,19 @@ interface Wish {
   timestamp: Date;
 }
 
+interface BirthdayMemory {
+  year: string;
+  title: string;
+  description: string;
+  image: string;
+}
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  answer: number;
+}
+
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ 
     days: 0, 
@@ -26,19 +39,84 @@ export default function Home() {
   const [isBirthday, setIsBirthday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [wishes, setWishes] = useState<Wish[]>([
-    { id: 1, name: "You", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
-    { id: 2, name: "Well-wisher", message: "Happy birthday we mzee..", timestamp: new Date() },
+    { id: 1, name: "Benson", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
+    { id: 2, name: "Moshi", message: "Happy birthday mzee! May this year bring you endless code and coffee ☕", timestamp: new Date() },
+    { id: 3, name: "Ashen", message: "Another year wiser! Keep building amazing things 🚀", timestamp: new Date() },
   ]);
   const [newWish, setNewWish] = useState({ name: '', message: '' });
   const [showMpesa, setShowMpesa] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji'>('countdown');
+  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji' | 'memories' | 'fun'>('countdown');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [candlesLit, setCandlesLit] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   
   const audioRef = useRef<HTMLAudioElement>(null);
+  const musicRef = useRef<HTMLAudioElement>(null);
   
-  // Your M-Pesa number (Update this with your actual number)
-  const mpesaNumber = "254746562072"; // Replace with your number
+  // Your M-Pesa number
+  const mpesaNumber = "254746562072";
+
+  // Personal photos (Replace these with your actual image links)
+  const personalPhotos = [
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", // Profile
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop", // Coding
+    "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop", // Projects
+    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop", // Celebration
+  ];
+
+  // Birthday memories timeline
+  const birthdayMemories: BirthdayMemory[] = [
+    { year: "2002", title: "🎉 Born!", description: "Entered the world on February 4th", image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop" },
+    { year: "2010", title: "💻 First Computer", description: "Started my tech journey", image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop" },
+    { year: "2016", title: "👨‍💻 First Code", description: "Wrote my first 'Hello World!'", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop" },
+    { year: "2020", title: "🎓 University", description: "Started Computer Science degree", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=300&fit=crop" },
+    { year: "2023", title: "🚀 Developer Job", description: "Started professional career", image: "https://images.unsplash.com/photo-1551836026-d5c2c7875b3f?w=400&h=300&fit=crop" },
+    { year: "2024", title: "💼 Portfolio", description: "Built my online presence", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" },
+  ];
+
+  // Birthday quiz
+  const quizQuestions: QuizQuestion[] = [
+    {
+      question: "What's Benson's birth date?",
+      options: ["January 4", "February 4", "March 4", "April 4"],
+      answer: 1
+    },
+    {
+      question: "What year was Benson born?",
+      options: ["2000", "2001", "2002", "2003"],
+      answer: 2
+    },
+    {
+      question: "What's Benson's developer nickname?",
+      options: ["Ashen", "Benny", "CodeMaster", "DevNinja"],
+      answer: 0
+    },
+    {
+      question: "What does Benson love to drink while coding?",
+      options: ["Coffee", "Tea", "Soda", "Water"],
+      answer: 0
+    }
+  ];
+
+  // Gift suggestions
+  const giftIdeas = [
+    { id: 1, name: "ka uji Treat ☕", amount: "Ksh 50", description: "uji tu iko sawa", emoji: "☕" },
+    { id: 2, name: "Lunch 🍕", amount: "Ksh 1000", description: "Avocado iko, buy lunch", emoji: "🍕" },
+    { id: 3, name: "ki foren 🪷", amount: "Ksh 100", description: "unajua nacheka kwa nini.....!", emoji: "🪷" },
+    { id: 4, name: "Surprise 🎁", amount: "Any", description: "maombi pia iko sawa (Amen)", emoji: "🎁" },
+  ];
+
+  // Share options
+  const shareOptions = [
+    { platform: 'WhatsApp', icon: '💬', color: '#25D366', url: 'https://wa.me/?text=' },
+    { platform: 'Twitter', icon: '🐦', color: '#1DA1F2', url: 'https://twitter.com/intent/tweet?text=' },
+    { platform: 'Facebook', icon: '👥', color: '#1877F2', url: 'https://www.facebook.com/sharer/sharer.php?u=' },
+    { platform: 'Copy Link', icon: '🔗', color: '#667eea', url: 'copy' },
+  ];
 
   useEffect(() => {
     setWindowSize({
@@ -108,10 +186,33 @@ export default function Home() {
     }
   };
 
-  const shareOnTwitter = () => {
-    const text = `🎂 Celebrating my ${age}th birthday! Send me wishes and check out my interactive birthday page:`;
-    const url = window.location.href;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  const toggleMusic = () => {
+    if (musicRef.current) {
+      if (musicPlaying) {
+        musicRef.current.pause();
+      } else {
+        musicRef.current.play();
+      }
+      setMusicPlaying(!musicPlaying);
+    }
+  };
+
+  const shareBirthday = (platform: string, url: string) => {
+    const text = `🎂 Celebrating Benson's ${age}th birthday! Join the celebration and send your wishes:`;
+    const currentUrl = window.location.href;
+    
+    if (platform === 'Copy Link') {
+      navigator.clipboard.writeText(currentUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } else {
+      window.open(`${url}${encodeURIComponent(text + ' ' + currentUrl)}`, '_blank');
+    }
+  };
+
+  const sendViaWhatsApp = () => {
+    const message = `🎉 Happy Birthday Benson! Wishing you an amazing ${age}th birthday! 🎂`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const copyToClipboard = (text: string) => {
@@ -132,7 +233,6 @@ export default function Home() {
       setWishes([wish, ...wishes]);
       setNewWish({ name: '', message: '' });
       
-      // Show confetti for new wishes
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
@@ -148,33 +248,49 @@ export default function Home() {
     return date.toLocaleDateString();
   };
 
-  // Gift suggestions
-  const giftIdeas = [
-    { id: 1, name: "ka uji Treat ☕", amount: "Ksh 50", description: "uji tu iko sawa" },
-    { id: 2, name: "Lunch 🍕", amount: "ksh 1000", description: "Avocado iko, buy lunch" },
-    { id: 3, name: "ki foren 🪷", amount: "ksh 100", description: "unajua nacheka kwa nini.....!" },
-    { id: 4, name: "Surprise 🎁", amount: "Any", description: "maombi pia iko sawa (Amen)" },
-  ];
+  const handleQuizAnswer = (answerIndex: number) => {
+    setSelectedAnswer(answerIndex);
+    if (answerIndex === quizQuestions[currentQuestion].answer) {
+      setQuizScore(quizScore + 1);
+    }
+    
+    setTimeout(() => {
+      if (currentQuestion < quizQuestions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
+        setSelectedAnswer(null);
+      }
+    }, 1500);
+  };
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%)',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 20%, #ec4899 40%, #f59e0b 60%, #10b981 80%, #3b82f6 100%)',
+      backgroundSize: '400% 400%',
+      animation: 'gradientBG 15s ease infinite',
       color: 'white',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Background decorations */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-        opacity: 0.1
-      }} />
+      {/* Background floating elements */}
+      <div className="floating-elements">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div 
+            key={i}
+            className="floating-element"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              fontSize: `${Math.random() * 30 + 20}px`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${3 + Math.random() * 7}s`
+            }}
+          >
+            {['🎈', '🎂', '🎉', '🎁', '✨', '🥳', '🎊', '🌟', '💫', '❤️'][i % 10]}
+          </div>
+        ))}
+      </div>
       
       {/* Confetti */}
       {showConfetti && windowSize.width > 0 && windowSize.height > 0 && (
@@ -188,8 +304,9 @@ export default function Home() {
         />
       )}
       
-      {/* Audio */}
+      {/* Audio elements */}
       <audio ref={audioRef} src="https://assets.mixkit.co/sfx/preview/mixkit-happy-birthday-horn-576.mp3" />
+      <audio ref={musicRef} loop src="https://assets.mixkit.co/music/preview/mixkit-happy-birthday-to-you-443.mp3" />
       
       <div style={{
         position: 'relative',
@@ -207,55 +324,112 @@ export default function Home() {
           <div style={{
             fontSize: isBirthday ? '4.5rem' : '3.5rem',
             fontWeight: 900,
-            background: 'linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff)',
+            background: 'linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff, #ec4899)',
             backgroundSize: '300% 300%',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             animation: 'gradient 3s ease infinite',
-            marginBottom: '10px'
+            marginBottom: '10px',
+            textShadow: '0 2px 20px rgba(0,0,0,0.2)'
           }}>
             {isBirthday ? '🎉 HAPPY BIRTHDAY BENSON! 🎉' : "Benson's Birthday"}
           </div>
           
           <div style={{
-            fontSize: '1.2rem',
-            opacity: 0.9,
-            marginBottom: '20px',
+            fontSize: '1.3rem',
+            opacity: 0.95,
+            marginBottom: '30px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px',
-            flexWrap: 'wrap'
+            gap: '15px',
+            flexWrap: 'wrap',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '15px 25px',
+            borderRadius: '50px',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            <span>🎂 Born February 4th</span>
-            <span>•</span>
-            <span>👨‍💻 Developer</span>
-            <span>•</span>
-            <span>🎈 Kijana mdogooo</span>
+            <span>🎂 Born February 4th, 2002</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>👨‍💻 Full Stack Developer</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>🎈 {age} Years Young</span>
           </div>
           
-          <button
-            onClick={playBirthdaySound}
-            style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
-              border: 'none',
-              borderRadius: '50px',
-              color: 'white',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              margin: '0 auto',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            🎉 {isBirthday ? 'Celebrate My Birthday!' : 'Preview Celebration'}
-          </button>
+          {/* Quick Actions */}
+          <div style={{
+            display: 'flex',
+            gap: '15px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '20px'
+          }}>
+            <button
+              onClick={playBirthdaySound}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
+                border: 'none',
+                borderRadius: '50px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              🎉 {isBirthday ? 'Celebrate!' : 'Preview Celebration'}
+            </button>
+            
+            <button
+              onClick={toggleMusic}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
+                border: 'none',
+                borderRadius: '50px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+              }}
+            >
+              {musicPlaying ? '⏸️ Pause Music' : '🎵 Play Music'}
+            </button>
+            
+            <button
+              onClick={sendViaWhatsApp}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(45deg, #25D366, #128C7E)',
+                border: 'none',
+                borderRadius: '50px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)'
+              }}
+            >
+              💬 Share on WhatsApp
+            </button>
+          </div>
         </header>
 
         {/* Navigation Tabs */}
@@ -264,12 +438,19 @@ export default function Home() {
           justifyContent: 'center',
           gap: '10px',
           marginBottom: '30px',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '50px',
+          padding: '10px',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
           {[
             { id: 'countdown', label: '⏱️ Countdown', icon: '⏱️' },
             { id: 'wishes', label: '💬 Birthday Wishes', icon: '💬' },
             { id: 'za kabej /uji', label: '🎁 Send a Gift', icon: '🎁' },
+            { id: 'memories', label: '📸 Memories', icon: '📸' },
+            { id: 'fun', label: '🎪 Birthday Fun', icon: '🎪' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -277,17 +458,18 @@ export default function Home() {
               style={{
                 padding: '12px 24px',
                 background: activeTab === tab.id 
-                  ? 'rgba(255, 255, 255, 0.2)' 
+                  ? 'rgba(255, 255, 255, 0.25)' 
                   : 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
-                borderRadius: '50px',
+                borderRadius: '40px',
                 color: 'white',
                 fontSize: '1rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                fontWeight: activeTab === tab.id ? 'bold' : 'normal'
               }}
             >
               {tab.icon} {tab.label}
@@ -309,7 +491,8 @@ export default function Home() {
               backdropFilter: 'blur(10px)',
               borderRadius: '24px',
               padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}>
               <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 ⏱️ {isBirthday ? 'Enjoy Your Special Day!' : 'Countdown to Next Birthday'}
@@ -326,7 +509,8 @@ export default function Home() {
                     background: 'rgba(255, 255, 255, 0.15)',
                     borderRadius: '16px',
                     padding: '25px 15px',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    transition: 'transform 0.3s ease'
                   }}>
                     <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '5px' }}>
                       {value.toString().padStart(2, '0')}
@@ -337,6 +521,20 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                padding: '15px',
+                fontSize: '0.9rem',
+                opacity: 0.8,
+                textAlign: 'center'
+              }}>
+                {isBirthday 
+                  ? '🎉 Today is the day! Celebrate and enjoy every moment!'
+                  : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
+                }
+              </div>
             </div>
 
             {/* Life Stats */}
@@ -345,7 +543,8 @@ export default function Home() {
               backdropFilter: 'blur(10px)',
               borderRadius: '24px',
               padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}>
               <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 📊 Life Statistics
@@ -365,7 +564,8 @@ export default function Home() {
                     alignItems: 'center',
                     padding: '15px',
                     background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '12px'
+                    borderRadius: '12px',
+                    transition: 'transform 0.3s ease'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                       <div style={{
@@ -380,7 +580,7 @@ export default function Home() {
                       }}>
                         {stat.emoji}
                       </div>
-                      <span>{stat.label}</span>
+                      <span style={{ fontSize: '1rem' }}>{stat.label}</span>
                     </div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{stat.value}</div>
                   </div>
@@ -397,7 +597,8 @@ export default function Home() {
             borderRadius: '24px',
             padding: '30px',
             border: '1px solid rgba(255, 255, 255, 0.2)',
-            marginBottom: '30px'
+            marginBottom: '30px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               💬 Send Birthday Wishes
@@ -417,7 +618,8 @@ export default function Home() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '12px',
                     color: 'white',
-                    fontSize: '1rem'
+                    fontSize: '1rem',
+                    backdropFilter: 'blur(10px)'
                   }}
                   required
                 />
@@ -433,7 +635,8 @@ export default function Home() {
                     borderRadius: '12px',
                     color: 'white',
                     fontSize: '1rem',
-                    resize: 'vertical'
+                    resize: 'vertical',
+                    backdropFilter: 'blur(10px)'
                   }}
                   required
                 />
@@ -451,7 +654,8 @@ export default function Home() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '10px'
+                    gap: '10px',
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   ✨ Post Birthday Wish
@@ -461,16 +665,22 @@ export default function Home() {
 
             {/* Wishes List */}
             <div style={{ marginTop: '30px' }}>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', opacity: 0.9 }}>
-                🎈 Recent Wishes ({wishes.length})
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.4rem', opacity: 0.9 }}>
+                  🎈 Recent Wishes ({wishes.length})
+                </h3>
+                <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>
+                  Share your wishes with Benson!
+                </div>
+              </div>
               <div style={{ display: 'grid', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
                 {wishes.map((wish) => (
                   <div key={wish.id} style={{
                     background: 'rgba(255, 255, 255, 0.05)',
                     borderRadius: '12px',
                     padding: '20px',
-                    borderLeft: '4px solid #8b5cf6'
+                    borderLeft: '4px solid #8b5cf6',
+                    transition: 'transform 0.3s ease'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
                       <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{wish.name}</div>
@@ -491,13 +701,14 @@ export default function Home() {
             borderRadius: '24px',
             padding: '30px',
             border: '1px solid rgba(255, 255, 255, 0.2)',
-            marginBottom: '30px'
+            marginBottom: '30px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               🎁 Gift Suggestions
             </h2>
             
-            <p style={{ marginBottom: '25px', opacity: 0.9, lineHeight: '1.6' }}>
+            <p style={{ marginBottom: '25px', opacity: 0.9, lineHeight: '1.6', fontSize: '1.1rem' }}>
               If you'd like to make my birthday extra special, here are some gift ideas. 
               Every little bit means a lot ata salamu! 💝
             </p>
@@ -516,11 +727,19 @@ export default function Home() {
                   padding: '25px',
                   textAlign: 'center',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  transition: 'transform 0.3s ease'
+                  transition: 'transform 0.3s ease',
+                  cursor: 'pointer'
                 }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{gift.name.split(' ')[1]}</div>
+                  <div style={{ fontSize: '3rem', marginBottom: '15px' }}>{gift.emoji}</div>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>{gift.name}</h3>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffd93d', marginBottom: '10px' }}>
+                  <div style={{ 
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold', 
+                    background: 'linear-gradient(45deg, #ffd93d, #ff6b6b)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    marginBottom: '10px' 
+                  }}>
                     {gift.amount}
                   </div>
                   <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '20px' }}>{gift.description}</p>
@@ -549,7 +768,8 @@ export default function Home() {
                     borderRadius: '20px',
                     color: 'white',
                     fontSize: '0.9rem',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   {showMpesa ? 'Hide' : 'Show'} Number
@@ -561,35 +781,45 @@ export default function Home() {
                   background: 'rgba(0, 0, 0, 0.2)',
                   borderRadius: '12px',
                   padding: '20px',
-                  marginTop: '15px'
+                  marginTop: '15px',
+                  animation: 'fadeIn 0.5s ease'
                 }}>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',
                     background: 'rgba(255, 255, 255, 0.1)',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    marginBottom: '15px'
+                    padding: '20px',
+                    borderRadius: '12px',
+                    marginBottom: '20px'
                   }}>
                     <div>
                       <div style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '5px' }}>M-Pesa Number</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                      <div style={{ 
+                        fontSize: '1.8rem', 
+                        fontWeight: 'bold', 
+                        fontFamily: 'monospace',
+                        letterSpacing: '2px',
+                        background: 'linear-gradient(45deg, #fff, #ffd93d)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>
                         {mpesaNumber}
                       </div>
                     </div>
                     <button
                       onClick={() => copyToClipboard(mpesaNumber)}
                       style={{
-                        padding: '10px 20px',
+                        padding: '12px 24px',
                         background: copySuccess ? '#10b981' : 'linear-gradient(45deg, #059669, #10b981)',
                         border: 'none',
-                        borderRadius: '8px',
+                        borderRadius: '10px',
                         color: 'white',
-                        fontSize: '0.9rem',
+                        fontSize: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        minWidth: '100px'
+                        minWidth: '120px',
+                        transition: 'all 0.3s ease'
                       }}
                     >
                       {copySuccess ? '✓ Copied!' : 'Copy'}
@@ -599,134 +829,404 @@ export default function Home() {
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '10px',
-                    padding: '12px',
+                    gap: '15px',
+                    padding: '15px',
                     background: 'rgba(255, 215, 0, 0.1)',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     border: '1px solid rgba(255, 215, 0, 0.3)'
                   }}>
-                    <div style={{ fontSize: '1.2rem' }}>💡</div>
-                    <div style={{ fontSize: '0.9rem' }}>
+                    <div style={{ fontSize: '1.5rem' }}>💡</div>
+                    <div style={{ fontSize: '0.95rem' }}>
                       <strong>Tip:</strong> Open M-Pesa, select "Send Money", enter this number, and any amount you wish!
                     </div>
                   </div>
                 </div>
               )}
             </div>
+          </div>
+        )}
 
-            {/* Other Options */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              padding: '25px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                💝 Other Ways to Celebrate
+        {activeTab === 'memories' && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            padding: '30px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            marginBottom: '30px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              📸 Birthday Memories & Timeline
+            </h2>
+            
+            {/* Photo Gallery */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                📷 Personal Photos
               </h3>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
-                  <span>📧</span>
-                  <span>Send an email with your favorite memory of us</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
-                  <span>🌟</span>
-                  <span>Share this page with others to spread the celebration</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
-                  <span>🎯</span>
-                  <span>Challenge me to a coding problem or game</span>
-                </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '15px',
+                marginBottom: '30px'
+              }}>
+                {personalPhotos.map((photo, index) => (
+                  <div key={index} style={{
+                    position: 'relative',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    height: '200px',
+                    cursor: 'pointer',
+                    transition: 'transform 0.3s ease'
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: `url(${photo})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      transition: 'transform 0.3s ease'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                      padding: '10px',
+                      color: 'white'
+                    }}>
+                      Photo {index + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                📅 Life Journey Timeline
+              </h3>
+              <div style={{ position: 'relative', paddingLeft: '20px' }}>
+                {/* Timeline line */}
+                <div style={{
+                  position: 'absolute',
+                  left: '0',
+                  top: '0',
+                  bottom: '0',
+                  width: '3px',
+                  background: 'linear-gradient(to bottom, #8b5cf6, #ec4899, #ffd93d)',
+                  borderRadius: '3px'
+                }} />
+                
+                {birthdayMemories.map((memory, index) => (
+                  <div key={index} style={{
+                    position: 'relative',
+                    marginBottom: '30px',
+                    marginLeft: '30px'
+                  }}>
+                    {/* Timeline dot */}
+                    <div style={{
+                      position: 'absolute',
+                      left: '-36px',
+                      top: '0',
+                      width: '15px',
+                      height: '15px',
+                      borderRadius: '50%',
+                      background: '#8b5cf6',
+                      border: '3px solid white',
+                      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.3)'
+                    }} />
+                    
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      borderLeft: '4px solid #8b5cf6'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
+                        <div style={{
+                          fontSize: '1.8rem',
+                          fontWeight: 'bold',
+                          background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}>
+                          {memory.year}
+                        </div>
+                        <h4 style={{ fontSize: '1.3rem', margin: 0 }}>{memory.title}</h4>
+                      </div>
+                      <p style={{ marginBottom: '15px', opacity: 0.9 }}>{memory.description}</p>
+                      <div style={{
+                        width: '100%',
+                        height: '150px',
+                        borderRadius: '8px',
+                        background: `url(${memory.image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '15px',
-          justifyContent: 'center',
-          marginBottom: '40px'
-        }}>
-          <button
-            onClick={shareOnTwitter}
-            style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(45deg, #1da1f2, #0d8bdc)',
-              border: 'none',
-              borderRadius: '50px',
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              minWidth: '180px'
-            }}
-          >
-            🐦 Share on Twitter
-          </button>
-          
-          <a
-            href="https://benson-portfolio-flame.vercel.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
-              border: 'none',
-              borderRadius: '50px',
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textDecoration: 'none',
-              minWidth: '180px'
-            }}
-          >
-            🚀 View My Portfolio
-          </a>
-          
-          <button
-            onClick={() => window.print()}
-            style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(45deg, #10b981, #059669)',
-              border: 'none',
-              borderRadius: '50px',
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              minWidth: '180px'
-            }}
-          >
-            🖨️ Save as PDF
-          </button>
-        </div>
+        {activeTab === 'fun' && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            padding: '30px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            marginBottom: '30px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              🎪 Birthday Fun & Games
+            </h2>
+            
+            {/* Interactive Cake */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              padding: '25px',
+              marginBottom: '30px',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                🎂 Interactive Birthday Cake
+              </h3>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: '10px',
+                marginBottom: '20px',
+                flexWrap: 'wrap'
+              }}>
+                {Array.from({ length: age }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCandlesLit(candlesLit === i + 1 ? i : i + 1)}
+                    style={{
+                      fontSize: '2rem',
+                      background: i < candlesLit ? 'linear-gradient(45deg, #ff6b6b, #ffd93d)' : 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      width: '50px',
+                      height: '50px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {i < candlesLit ? '🕯️' : '🕯'}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>
+                Click to light {candlesLit}/{age} candles! {candlesLit === age && '🎉 All candles lit!'}
+              </p>
+            </div>
+
+            {/* Birthday Quiz */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              padding: '25px',
+              marginBottom: '30px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  🎯 Birthday Quiz
+                </h3>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', background: 'linear-gradient(45deg, #ffd93d, #ff6b6b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Score: {quizScore}/{quizQuestions.length}
+                </div>
+              </div>
+              
+              {currentQuestion < quizQuestions.length ? (
+                <>
+                  <div style={{ fontSize: '1.2rem', marginBottom: '20px', fontWeight: 'bold' }}>
+                    {quizQuestions[currentQuestion].question}
+                  </div>
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {quizQuestions[currentQuestion].options.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleQuizAnswer(index)}
+                        style={{
+                          padding: '15px',
+                          background: selectedAnswer === index 
+                            ? (index === quizQuestions[currentQuestion].answer 
+                              ? 'linear-gradient(45deg, #10b981, #059669)' 
+                              : 'linear-gradient(45deg, #ef4444, #dc2626)')
+                            : 'rgba(255, 255, 255, 0.1)',
+                          border: 'none',
+                          borderRadius: '10px',
+                          color: 'white',
+                          fontSize: '1rem',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '30px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🎉</div>
+                  <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Quiz Complete!</h3>
+                  <p style={{ fontSize: '1.1rem', opacity: 0.9, marginBottom: '20px' }}>
+                    You scored {quizScore} out of {quizQuestions.length}!
+                    {quizScore === quizQuestions.length ? ' Perfect score! 🥳' : ' Great job!'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setCurrentQuestion(0);
+                      setQuizScore(0);
+                      setSelectedAnswer(null);
+                    }}
+                    style={{
+                      padding: '12px 24px',
+                      background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
+                      border: 'none',
+                      borderRadius: '50px',
+                      color: 'white',
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Play Again
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Share Everywhere */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              padding: '25px'
+            }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                📱 Share Everywhere
+              </h3>
+              <p style={{ marginBottom: '20px', opacity: 0.9 }}>
+                Share this birthday celebration with friends and family!
+              </p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '15px'
+              }}>
+                {shareOptions.map((option) => (
+                  <button
+                    key={option.platform}
+                    onClick={() => shareBirthday(option.platform, option.url)}
+                    style={{
+                      padding: '15px',
+                      background: option.color,
+                      border: 'none',
+                      borderRadius: '12px',
+                      color: 'white',
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      transition: 'transform 0.3s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>{option.icon}</span>
+                    {option.platform}
+                    {option.platform === 'Copy Link' && copySuccess && ' ✓'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <footer style={{
           textAlign: 'center',
-          padding: '30px 20px',
+          padding: '40px 20px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           fontSize: '0.9rem',
-          opacity: 0.7
+          opacity: 0.8,
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '20px',
+          marginBottom: '20px',
+          backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ marginBottom: '10px' }}>
-            Made with ❤️ by Benson to celebrate amazing years!
+          <div style={{ marginBottom: '15px', fontSize: '1.1rem' }}>
+            Made with ❤️ by Benson to celebrate {age} amazing years!
           </div>
-          <div>
-            Leo ndio ile siku! 🎉🥳
+          <div style={{ marginBottom: '20px', fontSize: '1rem', opacity: 0.9 }}>
+            Leo ndio ile siku! 🎉🥳 | Happy Birthday to me!
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <a
+              href="https://benson-portfolio-flame.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'white',
+                textDecoration: 'none',
+                padding: '8px 16px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🚀 View My Portfolio
+            </a>
+            <a
+              href="https://github.com/mamoshi572"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'white',
+                textDecoration: 'none',
+                padding: '8px 16px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              💻 My GitHub
+            </a>
+            <button
+              onClick={() => window.print()}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '20px',
+                color: 'white',
+                padding: '8px 16px',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🖨️ Save as PDF
+            </button>
           </div>
         </footer>
       </div>
@@ -738,7 +1238,41 @@ export default function Home() {
           100% { background-position: 0% 50%; }
         }
         
-        /* Custom scrollbar for wishes */
+        @keyframes gradientBG {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        .floating-elements {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 1;
+          overflow: hidden;
+        }
+        
+        .floating-element {
+          position: absolute;
+          animation: float 3s ease-in-out infinite;
+          opacity: 0.7;
+          filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+        }
+        
+        /* Custom scrollbar */
         div::-webkit-scrollbar {
           width: 8px;
         }
@@ -753,6 +1287,16 @@ export default function Home() {
           border-radius: 4px;
         }
         
+        div::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Smooth transitions */
+        * {
+          transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        
+        /* Responsive design */
         @media (max-width: 768px) {
           div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
             gridTemplateColumns: repeat(2, 1fr) !important;
@@ -760,6 +1304,20 @@ export default function Home() {
           
           div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"] {
             gridTemplateColumns: 1fr !important;
+          }
+          
+          header h1 {
+            font-size: 2.5rem !important;
+          }
+          
+          .navigation-tabs {
+            overflow-x: auto;
+            justify-content: flex-start;
+            padding-bottom: 10px;
+          }
+          
+          .navigation-tabs button {
+            white-space: nowrap;
           }
         }
         
@@ -769,7 +1327,16 @@ export default function Home() {
           }
           
           header h1 {
-            font-size: 2.5rem !important;
+            font-size: 2rem !important;
+          }
+          
+          .quick-actions {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          
+          .quick-actions button {
+            width: 100%;
           }
         }
       `}</style>
