@@ -1030,7 +1030,7 @@ export default function Home() {
                 ))}
               </div>
               <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>
-                Click to light {candlesLit}/{age} candles! {candlesLit === age && '🎉 All candles lit!'}
+                Click to light all candles!  '🎉 All candles lit!'
               </p>
             </div>
 
@@ -1174,7 +1174,7 @@ export default function Home() {
           backdropFilter: 'blur(10px)'
         }}>
           <div style={{ marginBottom: '15px', fontSize: '1.1rem' }}>
-            Made with ❤️ by Benson to celebrate {age} amazing years!
+            Made with ❤️ by Benson to celebrate amazing years!
           </div>
           <div style={{ marginBottom: '20px', fontSize: '1rem', opacity: 0.9 }}>
             Leo ndio ile siku! 🎉🥳 | Happy Birthday to me!
