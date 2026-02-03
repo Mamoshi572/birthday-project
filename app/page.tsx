@@ -26,8 +26,8 @@ export default function Home() {
   const [isBirthday, setIsBirthday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [wishes, setWishes] = useState<Wish[]>([
-    { id: 1, name: "You", message: "Happy Birthday to me! 🎉", timestamp: new Date() },
-    { id: 2, name: "Well-wisher", message: "Wishing you an amazing year ahead!", timestamp: new Date() },
+    { id: 1, name: "You", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
+    { id: 2, name: "Well-wisher", message: "Happy birthday we mzee..", timestamp: new Date() },
   ]);
   const [newWish, setNewWish] = useState({ name: '', message: '' });
   const [showMpesa, setShowMpesa] = useState(false);
@@ -38,7 +38,7 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
   
   // Your M-Pesa number (Update this with your actual number)
-  const mpesaNumber = "2547XXXXXXXX"; // Replace with your number
+  const mpesaNumber = "254746562072"; // Replace with your number
 
   useEffect(() => {
     setWindowSize({
@@ -150,10 +150,10 @@ export default function Home() {
 
   // Gift suggestions
   const giftIdeas = [
-    { id: 1, name: "Coffee Treat ☕", amount: "$5", description: "Buy me a coffee!" },
-    { id: 2, name: "Lunch 🍕", amount: "$15", description: "Treat me to lunch" },
-    { id: 3, name: "Book 📚", amount: "$25", description: "Help grow my library" },
-    { id: 4, name: "Surprise 🎁", amount: "Any", description: "Your choice!" },
+    { id: 1, name: "ka uji Treat ☕", amount: "Ksh 50", description: "uji tu iko sawa" },
+    { id: 2, name: "Lunch 🍕", amount: "ksh 1000", description: "Avocado iko, buy lunch" },
+    { id: 3, name: "ki foren 🪷", amount: "ksh 100", description: "unajua nacheka kwa nini.....!" },
+    { id: 4, name: "Surprise 🎁", amount: "Any", description: "maombi pia iko sawa (Amen)" },
   ];
 
   return (
@@ -227,11 +227,11 @@ export default function Home() {
             gap: '10px',
             flexWrap: 'wrap'
           }}>
-            <span>🎂 Born February 4, 2002</span>
+            <span>🎂 Born February 4th</span>
             <span>•</span>
             <span>👨‍💻 Developer</span>
             <span>•</span>
-            <span>🎈 {age} Years Young</span>
+            <span>🎈 Kijana mdogooo</span>
           </div>
           
           <button
@@ -269,7 +269,7 @@ export default function Home() {
           {[
             { id: 'countdown', label: '⏱️ Countdown', icon: '⏱️' },
             { id: 'wishes', label: '💬 Birthday Wishes', icon: '💬' },
-            { id: 'gifts', label: '🎁 Send a Gift', icon: '🎁' },
+            { id: 'za kabej /uji', label: '🎁 Send a Gift', icon: '🎁' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -499,7 +499,7 @@ export default function Home() {
             
             <p style={{ marginBottom: '25px', opacity: 0.9, lineHeight: '1.6' }}>
               If you'd like to make my birthday extra special, here are some gift ideas. 
-              Every little bit means a lot! 💝
+              Every little bit means a lot ata salamu! 💝
             </p>
 
             {/* Gift Ideas */}
@@ -723,10 +723,11 @@ export default function Home() {
           opacity: 0.7
         }}>
           <div style={{ marginBottom: '10px' }}>
-            Made with ❤️ by Benson to celebrate {age} amazing years!
+            Made with ❤️ by Benson to celebrate amazing years!
           </div>
           <div>
-            Update the M-Pesa number in the code to your actual number. Wishes are stored locally in browser.
+            Leo ndio ile siku! 🎉🥳
+
           </div>
         </footer>
       </div>
