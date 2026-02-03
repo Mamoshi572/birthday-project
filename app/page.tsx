@@ -70,10 +70,10 @@ export default function Home() {
 
   // Birthday memories timeline
   const birthdayMemories: BirthdayMemory[] = [
-    { year: "2002", title: "🎉 Born!", description: "Entered the world on February 4th", image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop" },
-    { year: "2010", title: "💻 First Computer", description: "Started my tech journey", image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop" },
-    { year: "2016", title: "👨‍💻 First Code", description: "Wrote my first 'Hello World!'", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop" },
-    { year: "2020", title: "🎓 University", description: "Started Computer Science degree", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=300&fit=crop" },
+    { year: "", title: "🎉 Born!", description: "Entered the world on February 4th", image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop" },
+    { year: "2010", title: "💻 First Computer", description: "Started my tech journey(hapa ndio mambo ilianza", image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop" },
+    { year: "2016", title: "👨‍💻 First Code", description: "Wrote my first 'Hello World!'hii siku nilifeel kama hacker bana", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop" },
+    { year: "2022", title: "🎓 University", description: "Started Computer Science degree", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=300&fit=crop" },
     { year: "2023", title: "🚀 Developer Job", description: "Started professional career", image: "https://images.unsplash.com/photo-1551836026-d5c2c7875b3f?w=400&h=300&fit=crop" },
     { year: "2024", title: "💼 Portfolio", description: "Built my online presence", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" },
   ];
@@ -211,7 +211,7 @@ export default function Home() {
   };
 
   const sendViaWhatsApp = () => {
-    const message = `🎉 Happy Birthday Benson! Wishing you an amazing birthday! 🎂`;
+    const message = `🎉 Happy Birthday Memelord Wishing you an amazing birthday! 🎂`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
