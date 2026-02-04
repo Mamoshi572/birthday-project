@@ -26,6 +26,11 @@ interface Roast {
   timestamp: Date;
 }
 
+// Fallback background gradient if image fails
+const fallbackBackground = {
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%)'
+};
+
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ 
     days: 0, 
@@ -50,14 +55,15 @@ export default function Home() {
   ]);
   const [newRoast, setNewRoast] = useState({ name: '', roast: '' });
   const [showMpesa, setShowMpesa] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji' | 'roast' | 'fun'>('countdown');
+  const [copySuccess, setCopySuccess] = useState('');
+  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'gifts' | 'roast' | 'fun'>('countdown');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [candlesLit, setCandlesLit] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [bgImageError, setBgImageError] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -65,7 +71,7 @@ export default function Home() {
   // Your M-Pesa number
   const mpesaNumber = "254746562072";
 
-  // Personal photos - Replace these with YOUR actual images
+  // Personal photos - Fixed paths
   const personalPhotos = [
     "/images/benson/profile.jpg",           // Your main profile photo
     "/images/benson/coding.jpg",            // You coding
@@ -144,16 +150,14 @@ export default function Home() {
     
     const calculateMetrics = () => {
       const now = new Date();
-      const birthDate = new Date(2002, 1, 4);
+      const birthDate = new Date(2002, 1, 4); // February 4, 2002
       
       // Calculate age
       const currentAge = now.getFullYear() - birthDate.getFullYear();
-      if (now.getMonth() < birthDate.getMonth() || 
-          (now.getMonth() === birthDate.getMonth() && now.getDate() < birthDate.getDate())) {
-        setAge(currentAge - 1);
-      } else {
-        setAge(currentAge);
-      }
+      const hasBirthdayPassed = now.getMonth() > birthDate.getMonth() || 
+          (now.getMonth() === birthDate.getMonth() && now.getDate() >= birthDate.getDate());
+      
+      setAge(hasBirthdayPassed ? currentAge : currentAge - 1);
       
       // Calculate total seconds lived
       const secondsLived = Math.floor((now.getTime() - birthDate.getTime()) / 1000);
@@ -164,7 +168,7 @@ export default function Home() {
       setIsBirthday(isTodayBirthday);
       
       // Calculate time to next birthday
-      const nextBirthday = new Date(now.getFullYear(), 1, 4);
+      let nextBirthday = new Date(now.getFullYear(), 1, 4);
       if (nextBirthday < now) {
         nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
       }
@@ -187,11 +191,24 @@ export default function Home() {
     };
   }, []);
 
+  // Auto-light candles on birthday
+  useEffect(() => {
+    if (isBirthday && candlesLit < age) {
+      const timer = setTimeout(() => {
+        setCandlesLit(prev => Math.min(prev + 1, age));
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [candlesLit, age, isBirthday]);
+
   const playBirthdaySound = () => {
     if (audioRef.current) {
       audioRef.current.play();
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000);
+      
+      // Auto-light all candles when celebrating
+      setCandlesLit(age);
     }
   };
 
@@ -208,12 +225,12 @@ export default function Home() {
 
   const shareBirthday = (platform: string, url: string) => {
     const text = `🎂 Celebrating Ashen's (Memelord) birthday! Join the celebration and send your wishes:`;
-    const currentUrl = window.location.href;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     
     if (platform === 'Copy Link') {
       navigator.clipboard.writeText(currentUrl);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+      setCopySuccess('link');
+      setTimeout(() => setCopySuccess(''), 2000);
     } else {
       window.open(`${url}${encodeURIComponent(text + ' ' + currentUrl)}`, '_blank');
     }
@@ -224,10 +241,10 @@ export default function Home() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+    setCopySuccess(type);
+    setTimeout(() => setCopySuccess(''), 2000);
   };
 
   const handleSubmitWish = (e: React.FormEvent) => {
@@ -235,15 +252,15 @@ export default function Home() {
     if (newWish.name.trim() && newWish.message.trim()) {
       const wish: Wish = {
         id: wishes.length + 1,
-        name: newWish.name,
-        message: newWish.message,
+        name: newWish.name.trim(),
+        message: newWish.message.trim(),
         timestamp: new Date()
       };
       setWishes([wish, ...wishes]);
       setNewWish({ name: '', message: '' });
       
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+      // Play sound and show confetti
+      playBirthdaySound();
     }
   };
 
@@ -252,13 +269,14 @@ export default function Home() {
     if (newRoast.name.trim() && newRoast.roast.trim()) {
       const roast: Roast = {
         id: roasts.length + 1,
-        name: newRoast.name,
-        roast: newRoast.roast,
+        name: newRoast.name.trim(),
+        roast: newRoast.roast.trim(),
         timestamp: new Date()
       };
       setRoasts([roast, ...roasts]);
       setNewRoast({ name: '', roast: '' });
       
+      // Small celebration for roasts too
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
     }
@@ -288,14 +306,35 @@ export default function Home() {
     }, 1500);
   };
 
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setQuizScore(0);
+    setSelectedAnswer(null);
+  };
+
+  // Format large numbers with commas
+  const formatNumber = (num: number) => {
+    return num.toLocaleString('en-US');
+  };
+
+  // Get background style
+  const getBackgroundStyle = () => {
+    if (bgImageError) {
+      return fallbackBackground;
+    }
+    return {
+      background: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                  url('/images/benson/background.jpg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
+    };
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-                  url('/images/benson/background.jpg')`, // Your photo as background
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
+      ...getBackgroundStyle(),
       color: 'white',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative',
@@ -360,6 +399,32 @@ export default function Home() {
           padding: '40px 20px',
           marginBottom: '20px'
         }}>
+          {/* Profile Image */}
+          <div style={{
+            width: '150px',
+            height: '150px',
+            margin: '0 auto 20px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '4px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              backgroundImage: 'url("/images/benson/profile.jpg")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '3rem'
+            }}>
+              {!bgImageError && '👨‍💻'}
+            </div>
+          </div>
+          
           <div style={{
             fontSize: isBirthday ? '4.5rem' : '3.5rem',
             fontWeight: 900,
@@ -393,7 +458,7 @@ export default function Home() {
             <span style={{ opacity: 0.5 }}>•</span>
             <span>👨‍💻 Memelord Developer</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>🎈  Kijan Mdogoo</span>
+            <span>🎈 kijana mdogoo</span>
           </div>
           
           {/* Quick Actions */}
@@ -472,7 +537,7 @@ export default function Home() {
         </header>
 
         {/* Navigation Tabs */}
-        <div style={{
+        <div className="navigation-tabs" style={{
           display: 'flex',
           justifyContent: 'center',
           gap: '10px',
@@ -487,7 +552,7 @@ export default function Home() {
           {[
             { id: 'countdown', label: '⏱️ Countdown', icon: '⏱️' },
             { id: 'wishes', label: '💬 Birthday Wishes', icon: '💬' },
-            { id: 'za kabej /uji', label: '🎁 Send a Gift', icon: '🎁' },
+            { id: 'gifts', label: '🎁 Send a Gift', icon: '🎁' },
             { id: 'roast', label: '😂 Birthday Roast', icon: '😂' },
             { id: 'fun', label: '🎪 Birthday Fun', icon: '🎪' },
           ].map((tab) => (
@@ -570,7 +635,8 @@ export default function Home() {
                 textAlign: 'center'
               }}>
                 {isBirthday 
-                  ? '🎉 Today is the day! Ni mbaya sana!' : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
+                  ? '🎉 Today is the day! Ni mbaya sana!' 
+                  : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
                 }
               </div>
             </div>
@@ -591,10 +657,10 @@ export default function Home() {
               <div style={{ display: 'grid', gap: '15px' }}>
                 {[
                   { label: 'Years Alive', value: age, emoji: '🎂', color: '#ff6b6b' },
-                  { label: 'Days Alive', value: Math.floor(totalSeconds / 86400).toLocaleString(), emoji: '📅', color: '#4d96ff' },
-                  { label: 'Hours Alive', value: Math.floor(totalSeconds / 3600).toLocaleString(), emoji: '⏰', color: '#6bcf7f' },
-                  { label: 'Minutes Alive', value: Math.floor(totalSeconds / 60).toLocaleString(), emoji: '⏱️', color: '#ffd93d' },
-                  { label: 'Seconds Alive', value: totalSeconds.toLocaleString(), emoji: '⚡', color: '#9d4edd' },
+                  { label: 'Days Alive', value: formatNumber(Math.floor(totalSeconds / 86400)), emoji: '📅', color: '#4d96ff' },
+                  { label: 'Hours Alive', value: formatNumber(Math.floor(totalSeconds / 3600)), emoji: '⏰', color: '#6bcf7f' },
+                  { label: 'Minutes Alive', value: formatNumber(Math.floor(totalSeconds / 60)), emoji: '⏱️', color: '#ffd93d' },
+                  { label: 'Seconds Alive', value: formatNumber(totalSeconds), emoji: '⚡', color: '#9d4edd' },
                 ].map((stat) => (
                   <div key={stat.label} style={{
                     display: 'flex',
@@ -732,7 +798,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === 'za kabej /uji' && (
+        {activeTab === 'gifts' && (
           <div style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(10px)',
@@ -829,9 +895,11 @@ export default function Home() {
                     background: 'rgba(255, 255, 255, 0.1)',
                     padding: '20px',
                     borderRadius: '12px',
-                    marginBottom: '20px'
+                    marginBottom: '20px',
+                    flexWrap: 'wrap',
+                    gap: '20px'
                   }}>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '5px' }}>M-Pesa Number</div>
                       <div style={{ 
                         fontSize: '1.8rem', 
@@ -846,10 +914,10 @@ export default function Home() {
                       </div>
                     </div>
                     <button
-                      onClick={() => copyToClipboard(mpesaNumber)}
+                      onClick={() => copyToClipboard(mpesaNumber, 'mpesa')}
                       style={{
                         padding: '12px 24px',
-                        background: copySuccess ? '#10b981' : 'linear-gradient(45deg, #059669, #10b981)',
+                        background: copySuccess === 'mpesa' ? '#10b981' : 'linear-gradient(45deg, #059669, #10b981)',
                         border: 'none',
                         borderRadius: '10px',
                         color: 'white',
@@ -860,7 +928,7 @@ export default function Home() {
                         transition: 'all 0.3s ease'
                       }}
                     >
-                      {copySuccess ? '✓ Copied!' : 'Copy'}
+                      {copySuccess === 'mpesa' ? '✓ Copied!' : 'Copy'}
                     </button>
                   </div>
                   
@@ -1074,9 +1142,37 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>
-                Click to light all {age} candles! {candlesLit === age && '🎉 All candles lit!'}
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
+                <button
+                  onClick={() => setCandlesLit(0)}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  Blow Out All
+                </button>
+                <button
+                  onClick={() => setCandlesLit(age)}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Light All Candles
+                </button>
+              </div>
             </div>
 
             {/* Birthday Quiz */}
@@ -1105,6 +1201,7 @@ export default function Home() {
                       <button
                         key={index}
                         onClick={() => handleQuizAnswer(index)}
+                        disabled={selectedAnswer !== null}
                         style={{
                           padding: '15px',
                           background: selectedAnswer === index 
@@ -1116,9 +1213,10 @@ export default function Home() {
                           borderRadius: '10px',
                           color: 'white',
                           fontSize: '1rem',
-                          cursor: 'pointer',
+                          cursor: selectedAnswer === null ? 'pointer' : 'not-allowed',
                           textAlign: 'left',
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.3s ease',
+                          opacity: selectedAnswer === null ? 1 : 0.9
                         }}
                       >
                         {option}
@@ -1132,14 +1230,10 @@ export default function Home() {
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Quiz Complete!</h3>
                   <p style={{ fontSize: '1.1rem', opacity: 0.9, marginBottom: '20px' }}>
                     You scored {quizScore} out of {quizQuestions.length}!
-                    {quizScore === quizQuestions.length ? ' Perfect score! 🥳' : ' Great job!'}
+                    {quizScore === quizQuestions.length ? ' Perfect score! 🥳' : ' kazi safi sana!'}
                   </p>
                   <button
-                    onClick={() => {
-                      setCurrentQuestion(0);
-                      setQuizScore(0);
-                      setSelectedAnswer(null);
-                    }}
+                    onClick={resetQuiz}
                     style={{
                       padding: '12px 24px',
                       background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
@@ -1198,7 +1292,7 @@ export default function Home() {
                   >
                     <span style={{ fontSize: '1.2rem' }}>{option.icon}</span>
                     {option.platform}
-                    {option.platform === 'Copy Link' && copySuccess && ' ✓'}
+                    {option.platform === 'Copy Link' && copySuccess === 'link' && ' ✓'}
                   </button>
                 ))}
               </div>
@@ -1276,7 +1370,7 @@ export default function Home() {
         </footer>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes gradient {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -1332,17 +1426,17 @@ export default function Home() {
         
         /* Smooth transitions */
         * {
-          transition: background-color 0.3s ease, transform 0.3s ease;
+          transition: background-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
         }
         
         /* Responsive design */
         @media (max-width: 768px) {
           div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
-            gridTemplateColumns: repeat(2, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
           }
           
           div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"] {
-            gridTemplateColumns: 1fr !important;
+            grid-template-columns: 1fr !important;
           }
           
           header h1 {
@@ -1362,7 +1456,7 @@ export default function Home() {
         
         @media (max-width: 480px) {
           div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
-            gridTemplateColumns: 1fr !important;
+            grid-template-columns: 1fr !important;
           }
           
           header h1 {
