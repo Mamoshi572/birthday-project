@@ -13,17 +13,17 @@ interface Wish {
   timestamp: Date;
 }
 
-interface BirthdayMemory {
-  year: string;
-  title: string;
-  description: string;
-  image: string;
-}
-
 interface QuizQuestion {
   question: string;
   options: string[];
   answer: number;
+}
+
+interface Roast {
+  id: number;
+  name: string;
+  roast: string;
+  timestamp: Date;
 }
 
 export default function Home() {
@@ -40,13 +40,18 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [wishes, setWishes] = useState<Wish[]>([
     { id: 1, name: "Ashen", message: "Nisherehe kubwa sana!! Happy birthday to me 🎉", timestamp: new Date() },
-    { id: 2, name: "cleo", message: "Happy birthday mzee! May this year bring you endless code and coffee ☕", timestamp: new Date() },
-    { id: 3, name: "keysha", message: "Another year wiser! Keep building amazing things ", timestamp: new Date() },
+    { id: 2, name: "Cleo", message: "Happy birthday mzee! May this year bring you endless code and coffee ☕", timestamp: new Date() },
+    { id: 3, name: "Keysha", message: "Another year wiser! Keep building amazing things 🚀", timestamp: new Date() },
   ]);
   const [newWish, setNewWish] = useState({ name: '', message: '' });
+  const [roasts, setRoasts] = useState<Roast[]>([
+    { id: 1, name: "Friend", roast: "At this Age hushajoin sharp boys😂", timestamp: new Date() },
+    { id: 2, name: "danny", roast: "Your code works 50% of the time... the other 50% is debugging! 🐛", timestamp: new Date() },
+  ]);
+  const [newRoast, setNewRoast] = useState({ name: '', roast: '' });
   const [showMpesa, setShowMpesa] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji' | 'memories' | 'fun'>('countdown');
+  const [activeTab, setActiveTab] = useState<'countdown' | 'wishes' | 'za kabej /uji' | 'roast' | 'fun'>('countdown');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [candlesLit, setCandlesLit] = useState(0);
@@ -60,44 +65,34 @@ export default function Home() {
   // Your M-Pesa number
   const mpesaNumber = "254746562072";
 
-  // Personal photos (Replace these with your actual image links)
+  // Personal photos - Replace these with YOUR actual images
   const personalPhotos = [
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", // Profile
-    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop", // Coding
-    "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop", // Projects
-    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop", // Celebration
-  ];
-
-  // Birthday memories timeline
-  const birthdayMemories: BirthdayMemory[] = [
-    { year: "", title: "🎉 Born!", description: "Entered the world on February 4th", image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop" },
-    { year: "2010", title: "💻 First Computer", description: "Started my tech journey(hapa ndio mambo ilianza", image: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop" },
-    { year: "2016", title: "👨‍💻 First Code", description: "Wrote my first 'Hello World!'hii siku nilifeel kama hacker bana", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop" },
-    { year: "2022", title: "🎓 University", description: "Started Computer Science degree", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=300&fit=crop" },
-    { year: "2023", title: "🚀 Developer Job", description: "Started professional career", image: "https://images.unsplash.com/photo-1551836026-d5c2c7875b3f?w=400&h=300&fit=crop" },
-    { year: "2024", title: "💼 Portfolio", description: "Built my online presence", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" },
+    "/images/benson/profile.jpg",           // Your main profile photo
+    "/images/benson/coding.jpg",            // You coding
+    "/images/benson/celebration.jpg",       // You celebrating
+    "/images/benson/fun.jpg",               // Casual/fun photo
   ];
 
   // Birthday quiz
   const quizQuestions: QuizQuestion[] = [
     {
-      question: "What's Benson's birth date?",
+      question: "What's Ashen's birth date?",
       options: ["January 4", "February 4", "March 4", "April 4"],
       answer: 1
     },
     {
-      question: "What year was Benson born?",
+      question: "What year was Ashen born?",
       options: ["2000", "2001", "2002", "2003"],
       answer: 2
     },
     {
-      question: "What's Benson's developer nickname?",
-      options: ["Ashen", "Benny", "CodeMaster", "DevNinja"],
-      answer: 0
+      question: "What's Ashen's developer nickname?",
+      options: ["Ashen", "Benson", "CodeMaster", "Memelord"],
+      answer: 3
     },
     {
-      question: "What does Benson love to drink while coding?",
-      options: ["Coffee", "Tea", "Soda", "Water"],
+      question: "What does Ashen love to drink while coding?",
+      options: ["Coffee", "Tea", "Soda", "Uji"],
       answer: 0
     }
   ];
@@ -116,6 +111,20 @@ export default function Home() {
     { platform: 'Twitter', icon: '🐦', color: '#1DA1F2', url: 'https://twitter.com/intent/tweet?text=' },
     { platform: 'Facebook', icon: '👥', color: '#1877F2', url: 'https://www.facebook.com/sharer/sharer.php?u=' },
     { platform: 'Copy Link', icon: '🔗', color: '#667eea', url: 'copy' },
+  ];
+
+  // Funny birthday facts about you
+  const funnyFacts = [
+    "🎮 Can debug code but can't debug why WiFi is slow",
+    "☕ Drinks more coffee than water (hydration? what's that?)",
+    "😴 Sleep schedule: 'I'll fix it tomorrow'",
+    "💾 Has 50+ tabs open 'for research'",
+    "🐛 Bugs fixed: Many | New bugs created: Also many",
+    "🎵 Codes to lo-fi beats but still writes bugs",
+    "📱 Refreshes GitHub 10x a day for green squares",
+    "🤔 'It works on my machine' is my motto",
+    "🍕 Pizza > Sleep when deadline approaches",
+    "🎯 Goals: Become senior dev | Reality: Googling basic syntax"
   ];
 
   useEffect(() => {
@@ -198,7 +207,7 @@ export default function Home() {
   };
 
   const shareBirthday = (platform: string, url: string) => {
-    const text = `🎂 Celebrating BEN (Ashen) birthday! Join the celebration and send your wishes:`;
+    const text = `🎂 Celebrating Ashen's (Memelord) birthday! Join the celebration and send your wishes:`;
     const currentUrl = window.location.href;
     
     if (platform === 'Copy Link') {
@@ -211,7 +220,7 @@ export default function Home() {
   };
 
   const sendViaWhatsApp = () => {
-    const message = `🎉 Happy Birthday Memelord Wishing you an amazing birthday! 🎂`;
+    const message = `🎉 Happy Birthday Memelord! Wishing you an amazing birthday! 🎂`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -235,6 +244,23 @@ export default function Home() {
       
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
+    }
+  };
+
+  const handleSubmitRoast = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newRoast.name.trim() && newRoast.roast.trim()) {
+      const roast: Roast = {
+        id: roasts.length + 1,
+        name: newRoast.name,
+        roast: newRoast.roast,
+        timestamp: new Date()
+      };
+      setRoasts([roast, ...roasts]);
+      setNewRoast({ name: '', roast: '' });
+      
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2000);
     }
   };
 
@@ -265,14 +291,27 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 20%, #ec4899 40%, #f59e0b 60%, #10b981 80%, #3b82f6 100%)',
-      backgroundSize: '400% 400%',
-      animation: 'gradientBG 15s ease infinite',
+      background: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                  url('/images/benson/background.jpg')`, // Your photo as background
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
       color: 'white',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative',
       overflow: 'hidden'
     }}>
+      {/* Overlay for better readability */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 50%, rgba(236, 72, 153, 0.8) 100%)',
+        zIndex: 0
+      }} />
+      
       {/* Background floating elements */}
       <div className="floating-elements">
         {Array.from({ length: 20 }).map((_, i) => (
@@ -332,7 +371,7 @@ export default function Home() {
             marginBottom: '10px',
             textShadow: '0 2px 20px rgba(0,0,0,0.2)'
           }}>
-            {isBirthday ? '🎉 HAPPY BIRTHDAY ASHEN 🎉' : "Benson's Birthday"}
+            {isBirthday ? '🎉 HAPPY BIRTHDAY ASHEN! 🎉' : "Ashen's Birthday"}
           </div>
           
           <div style={{
@@ -350,11 +389,11 @@ export default function Home() {
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            <span>🎂 Born February 4th, 2002</span>
+            <span>🎂 Born February 4th</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>👨‍💻 Full Stack Developer</span>
+            <span>👨‍💻 Memelord Developer</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>🎈 Kijana mdogo</span>
+            <span>🎈  Kijan Mdogoo</span>
           </div>
           
           {/* Quick Actions */}
@@ -449,7 +488,7 @@ export default function Home() {
             { id: 'countdown', label: '⏱️ Countdown', icon: '⏱️' },
             { id: 'wishes', label: '💬 Birthday Wishes', icon: '💬' },
             { id: 'za kabej /uji', label: '🎁 Send a Gift', icon: '🎁' },
-            { id: 'memories', label: '📸 Memories', icon: '📸' },
+            { id: 'roast', label: '😂 Birthday Roast', icon: '😂' },
             { id: 'fun', label: '🎪 Birthday Fun', icon: '🎪' },
           ].map((tab) => (
             <button
@@ -531,8 +570,7 @@ export default function Home() {
                 textAlign: 'center'
               }}>
                 {isBirthday 
-                  ? '🎉 Today is the day! Celebrate and enjoy every moment!'
-                  : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
+                  ? '🎉 Today is the day! Ni mbaya sana!' : `🎂 Next birthday: February 4, ${new Date().getFullYear() + (timeLeft.days > 360 ? 0 : 1)}`
                 }
               </div>
             </div>
@@ -670,7 +708,7 @@ export default function Home() {
                   🎈 Recent Wishes ({wishes.length})
                 </h3>
                 <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-                  Share your wishes with Benson!
+                  Share your wishes with Ashen!
                 </div>
               </div>
               <div style={{ display: 'grid', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
@@ -846,7 +884,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === 'memories' && (
+        {activeTab === 'roast' && (
           <div style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(10px)',
@@ -857,117 +895,124 @@ export default function Home() {
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              📸 Birthday Memories & Timeline
+              😂 Birthday Roast Session
             </h2>
             
-            {/* Photo Gallery */}
-            <div style={{ marginBottom: '40px' }}>
+            <p style={{ marginBottom: '25px', opacity: 0.9, lineHeight: '1.6', fontSize: '1.1rem' }}>
+              It's my birthday! Roast me playfully! Share funny jokes, memes, or lighthearted roasts. 
+              All in good fun! 🔥
+            </p>
+
+            {/* Roast Form */}
+            <form onSubmit={handleSubmitRoast} style={{ marginBottom: '30px' }}>
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={newRoast.name}
+                  onChange={(e) => setNewRoast({...newRoast, name: e.target.value})}
+                  style={{
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                  required
+                />
+                <textarea
+                  placeholder="Your funny roast... (Be playful!)"
+                  value={newRoast.roast}
+                  onChange={(e) => setNewRoast({...newRoast, roast: e.target.value})}
+                  rows={3}
+                  style={{
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    resize: 'vertical',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                  required
+                />
+                <button
+                  type="submit"
+                  style={{
+                    padding: '15px 30px',
+                    background: 'linear-gradient(45deg, #f59e0b, #ef4444)',
+                    border: 'none',
+                    borderRadius: '50px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  🔥 Submit Roast
+                </button>
+              </div>
+            </form>
+
+            {/* Funny Facts */}
+            <div style={{ marginBottom: '30px' }}>
               <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                📷 Personal Photos
+                🤣 Ashen's Developer Facts
               </h3>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '15px',
-                marginBottom: '30px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px'
               }}>
-                {personalPhotos.map((photo, index) => (
+                {funnyFacts.map((fact, index) => (
                   <div key={index} style={{
-                    position: 'relative',
+                    background: 'rgba(255, 255, 255, 0.05)',
                     borderRadius: '12px',
-                    overflow: 'hidden',
-                    height: '200px',
-                    cursor: 'pointer',
+                    padding: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
                     transition: 'transform 0.3s ease'
                   }}>
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      background: `url(${photo})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      transition: 'transform 0.3s ease'
-                    }} />
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                      padding: '10px',
-                      color: 'white'
-                    }}>
-                      Photo {index + 1}
-                    </div>
+                    <div style={{ fontSize: '1.2rem' }}>😂</div>
+                    <div style={{ fontSize: '0.9rem' }}>{fact}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Timeline */}
+            {/* Roasts List */}
             <div>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                📅 Life Journey Timeline
-              </h3>
-              <div style={{ position: 'relative', paddingLeft: '20px' }}>
-                {/* Timeline line */}
-                <div style={{
-                  position: 'absolute',
-                  left: '0',
-                  top: '0',
-                  bottom: '0',
-                  width: '3px',
-                  background: 'linear-gradient(to bottom, #8b5cf6, #ec4899, #ffd93d)',
-                  borderRadius: '3px'
-                }} />
-                
-                {birthdayMemories.map((memory, index) => (
-                  <div key={index} style={{
-                    position: 'relative',
-                    marginBottom: '30px',
-                    marginLeft: '30px'
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.4rem', opacity: 0.9 }}>
+                  🔥 Recent Roasts ({roasts.length})
+                </h3>
+                <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>
+                  All in good fun! Don't be too harsh 😅
+                </div>
+              </div>
+              <div style={{ display: 'grid', gap: '15px', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
+                {roasts.map((roast) => (
+                  <div key={roast.id} style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    borderLeft: '4px solid #f59e0b',
+                    transition: 'transform 0.3s ease'
                   }}>
-                    {/* Timeline dot */}
-                    <div style={{
-                      position: 'absolute',
-                      left: '-36px',
-                      top: '0',
-                      width: '15px',
-                      height: '15px',
-                      borderRadius: '50%',
-                      background: '#8b5cf6',
-                      border: '3px solid white',
-                      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.3)'
-                    }} />
-                    
-                    <div style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      borderLeft: '4px solid #8b5cf6'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                        <div style={{
-                          fontSize: '1.8rem',
-                          fontWeight: 'bold',
-                          background: 'linear-gradient(45deg, #ff6b6b, #ffd93d)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}>
-                          {memory.year}
-                        </div>
-                        <h4 style={{ fontSize: '1.3rem', margin: 0 }}>{memory.title}</h4>
-                      </div>
-                      <p style={{ marginBottom: '15px', opacity: 0.9 }}>{memory.description}</p>
-                      <div style={{
-                        width: '100%',
-                        height: '150px',
-                        borderRadius: '8px',
-                        background: `url(${memory.image})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{roast.name}</div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{formatTimeAgo(roast.timestamp)}</div>
                     </div>
+                    <p style={{ margin: 0, opacity: 0.9, lineHeight: '1.5', fontStyle: 'italic' }}>"{roast.roast}"</p>
                   </div>
                 ))}
               </div>
@@ -998,7 +1043,7 @@ export default function Home() {
               textAlign: 'center'
             }}>
               <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                🎂 Interactive Birthday game
+                🎂 Interactive Birthday Game
               </h3>
               <div style={{ 
                 display: 'flex', 
@@ -1030,7 +1075,7 @@ export default function Home() {
                 ))}
               </div>
               <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>
-                Click to light all candles!  '🎉 All candles lit!'
+                Click to light all {age} candles! {candlesLit === age && '🎉 All candles lit!'}
               </p>
             </div>
 
@@ -1174,7 +1219,7 @@ export default function Home() {
           backdropFilter: 'blur(10px)'
         }}>
           <div style={{ marginBottom: '15px', fontSize: '1.1rem' }}>
-            Made with ❤️ by Benson to celebrate amazing years!
+            Made with ❤️ by Ashen to celebrate amazing years!
           </div>
           <div style={{ marginBottom: '20px', fontSize: '1rem', opacity: 0.9 }}>
             Leo ndio ile siku! 🎉🥳 | Happy Birthday to me!
@@ -1233,12 +1278,6 @@ export default function Home() {
 
       <style jsx>{`
         @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes gradientBG {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
