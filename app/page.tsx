@@ -421,7 +421,7 @@ export default function Home() {
               justifyContent: 'center',
               fontSize: '3rem'
             }}>
-              {!bgImageError && '👨‍💻'}
+              {!bgImageError && ''}
             </div>
           </div>
           
